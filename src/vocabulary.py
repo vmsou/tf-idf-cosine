@@ -61,6 +61,16 @@ class Vocabulary(Generic[_T], Iterable):
             matrix.loc[i + 1] = vector
         return matrix
 
+    def to_tf(self, sentences: List[str]) -> pd.DataFrame:
+        """ Converts data to Term Frequency matrix. """
+        matrix: pd.DataFrame = pd.DataFrame(columns=self.data)
+        for i in range(len(sentences)):
+            sentence: str = sentences[i]
+            vector: List[int] = self.vectorize(sentence)
+            total: int = sum(vector)
+            matrix.loc[i + 1] = [i / total for i in vector]
+        return matrix
+
     @staticmethod
     def text_to_vocabulary(text: str) -> 'Vocabulary'[_T]:
         """ Converts text to words. """

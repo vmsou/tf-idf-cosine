@@ -76,10 +76,10 @@ def main() -> None:
         print(f"{article.title}: {article.link}")
     print("".center(80, '-'))
 
-    documents_sentences: List[List[str]] = sentences_from_articles(articles)
-    if documents_sentences:
-        # Flatten sentences
-        sentences = [sentence for sentences in documents_sentences for sentence in sentences]
+    # documents_sentences: List[List[str]] = sentences_from_articles(articles)
+    # if documents_sentences:
+    #     # Flatten sentences
+    #     sentences = [sentence for sentences in documents_sentences for sentence in sentences]
 
     # Generate vocabulary from sentences
     print("Generating vocabulary...", end=' ')
@@ -90,8 +90,15 @@ def main() -> None:
     print("Generating Document-term matrix...", end=' ')
     matrix: pd.DataFrame = vocabulary.to_matrix(sentences)
     print("Done.")
-
     print(matrix.head(3))
+    print()
+
+    # Generate TF matrix
+    print("Generating Term Frequency matrix...", end=' ')
+    tf_matrix: pd.DataFrame = vocabulary.to_tf(sentences)
+    print("Done.")
+    print(tf_matrix.head(3))
+    print()
 
 
 if __name__ == "__main__":
