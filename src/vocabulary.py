@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import math
 from typing import Set, List, Generic, TypeVar, Iterable, Dict
 
 import pandas as pd
@@ -32,7 +34,8 @@ class Vocabulary(Generic[_T], Iterable):
     def __iter__(self):
         return iter(self.data)
 
-    def index(self, item: _T): return self.position[item]
+    def index(self, item: _T):
+        return self.position[item]
 
     def add(self, __o: _T) -> None:
         """ Appends an unique element to List. """
@@ -63,12 +66,31 @@ class Vocabulary(Generic[_T], Iterable):
 
     def to_tf(self, sentences: List[str]) -> pd.DataFrame:
         """ Converts data to Term Frequency matrix. """
+        def tf(t: int, d: int) -> float:
+            return t / d
+
         matrix: pd.DataFrame = pd.DataFrame(columns=self.data)
         for i in range(len(sentences)):
             sentence: str = sentences[i]
             vector: List[int] = self.vectorize(sentence)
             total: int = sum(vector)
-            matrix.loc[i + 1] = [i / total for i in vector]
+            matrix.loc[i + 1] = [tf(t, total) for t in vector]
+        return matrix
+
+    def to_idf(self, sentences: List[str]) -> pd.DataFrame:
+        """ Converts data to Inverse Document Frequency matrix. """
+        n_doc = len(sentences)
+
+        def idf(t: int) -> float:
+            if t == 0: return 0.0
+            return math.log10(n_doc / t)
+
+        matrix: pd.DataFrame = pd.DataFrame(columns=self.data)
+
+        for i in range(len(sentences)):
+            sentence: str = sentences[i]
+            vector: List[int] = self.vectorize(sentence)
+            matrix.loc[i + 1] = [idf(t) for t in vector]
         return matrix
 
     @staticmethod

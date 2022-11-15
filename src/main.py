@@ -100,6 +100,13 @@ def main() -> None:
     print(tf_matrix.head(3))
     print()
 
+    # Generate IDF matrix
+    print("Generating Inverse Document Frequency matrix...", end=' ')
+    idf_matrix: pd.DataFrame = vocabulary.to_idf(sentences)
+    print("Done.")
+    print(idf_matrix.head(3))
+    print()
+
 
 if __name__ == "__main__":
     main()
