@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Set, List, Generic, TypeVar, Iterable, Dict
+from typing import Set, List, Generic, TypeVar, Iterable, Dict, Final
 
 import pandas as pd
 import spacy
@@ -91,6 +91,30 @@ class Vocabulary(Generic[_T], Iterable):
             sentence: str = sentences[i]
             vector: List[int] = self.vectorize(sentence)
             matrix.loc[i + 1] = [idf(t) for t in vector]
+        return matrix
+
+    def to_tf_idf(self, sentences: List[str]) -> pd.DataFrame:
+        """ Converts data to Term Frequency-Inverse Document Frequency matrix. """
+        N: Final[int] = len(sentences)
+
+        def tf(t: int, d: int) -> float: return t / d
+
+        def idf(t: int) -> float:
+            if t == 0: return 0.0
+            return math.log10(N / t)
+
+        def tf_idf(t: int, d: int) -> float: return tf(t, d) * idf(t)
+
+        # tf_matrix: pd.DataFrame = self.to_tf(sentences)
+        # idf_matrix: pd.DataFrame = self.to_idf(sentences)
+        matrix: pd.DataFrame = pd.DataFrame(columns=self.data)
+        for i in range(len(sentences)):
+            sentence: str = sentences[i]
+            vector: List[int] = self.vectorize(sentence)
+            total: int = sum(vector)
+            matrix.loc[i + 1] = [tf_idf(t, total) for t in vector]
+
+        # return pd.DataFrame(tf_matrix.values * idf_matrix.values, columns=tf_matrix.columns, index=tf_matrix.index)
         return matrix
 
     @staticmethod

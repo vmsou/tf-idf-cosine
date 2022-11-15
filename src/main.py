@@ -90,21 +90,28 @@ def main() -> None:
     print("Generating Document-term matrix...", end=' ')
     matrix: pd.DataFrame = vocabulary.to_matrix(sentences)
     print("Done.")
-    print(matrix.head(3))
+    print(matrix.head())
     print()
 
     # Generate TF matrix
     print("Generating Term Frequency matrix...", end=' ')
     tf_matrix: pd.DataFrame = vocabulary.to_tf(sentences)
     print("Done.")
-    print(tf_matrix.head(3))
+    print(tf_matrix.head())
     print()
 
     # Generate IDF matrix
     print("Generating Inverse Document Frequency matrix...", end=' ')
     idf_matrix: pd.DataFrame = vocabulary.to_idf(sentences)
     print("Done.")
-    print(idf_matrix.head(3))
+    print(idf_matrix.head())
+    print()
+
+    # Generate TF-IDF matrix
+    print("Generating Term Frequency-Inverse Document Frequency matrix...", end=' ')
+    tf_idf_matrix: pd.DataFrame = vocabulary.to_tf_idf(sentences)
+    print("Done.")
+    print(tf_idf_matrix.head())
     print()
 
 
