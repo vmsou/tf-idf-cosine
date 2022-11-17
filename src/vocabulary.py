@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import numpy as np
 from typing import Set, List, Generic, TypeVar, Iterable, Dict, Final
 
 import pandas as pd
@@ -13,10 +14,19 @@ from corpus import NLP
 _T = TypeVar("_T")
 
 
-def text_to_words(text: str) -> List[str]:
+def word_tokenize(text: str) -> List[str]:
     """ Separates words from text. """
     doc: spacy.tokens.doc.Doc = NLP(text)
     return [token.text for token in doc if not token.is_punct]
+
+
+def cosine_similarity(a: List[int], b: List[int]) -> float:
+    value: float = 0
+    try:
+        value = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    except (FloatingPointError, RuntimeWarning):
+        pass
+    return value if (not np.isnan(value)) else 0.0
 
 
 class Vocabulary(Generic[_T], Iterable):
@@ -51,7 +61,7 @@ class Vocabulary(Generic[_T], Iterable):
 
     def vectorize(self, text: str) -> List[int]:
         vector: List[int] = [0 for _ in range(len(self.data))]
-        for word in text_to_words(text):
+        for word in word_tokenize(text):
             vector[self.index(word)] += 1
         return vector
 
@@ -67,6 +77,7 @@ class Vocabulary(Generic[_T], Iterable):
     def to_tf(self, sentences: List[str]) -> pd.DataFrame:
         """ Converts data to Term Frequency matrix. """
         def tf(t: int, d: int) -> float:
+            if d == 0: return 0
             return t / d
 
         matrix: pd.DataFrame = pd.DataFrame(columns=self.data)
@@ -97,7 +108,9 @@ class Vocabulary(Generic[_T], Iterable):
         """ Converts data to Term Frequency-Inverse Document Frequency matrix. """
         N: Final[int] = len(sentences)
 
-        def tf(t: int, d: int) -> float: return t / d
+        def tf(t: int, d: int) -> float:
+            if d == 0: return 0.0
+            return t / d
 
         def idf(t: int) -> float:
             if t == 0: return 0.0
@@ -117,11 +130,21 @@ class Vocabulary(Generic[_T], Iterable):
         # return pd.DataFrame(tf_matrix.values * idf_matrix.values, columns=tf_matrix.columns, index=tf_matrix.index)
         return matrix
 
+    def to_similarity(self, sentences: List[str]) -> pd.DataFrame:
+        """ Converts sentences to distance matrix utilizing cosine similarity as distance. """
+        tf_idf_matrix: pd.DataFrame = self.to_tf_idf(sentences)
+        vectors: List[List[int]] = tf_idf_matrix.loc[:, :].values.tolist()
+        distance_matrix: pd.DataFrame = pd.DataFrame(columns=range(1, len(vectors)+1), index=range(1, len(vectors)+1))
+        for i in distance_matrix.index:
+            for j in distance_matrix.columns:
+                distance_matrix.loc[i, j] = cosine_similarity(vectors[i-1], vectors[j-1])
+        return distance_matrix
+
     @staticmethod
     def text_to_vocabulary(text: str) -> 'Vocabulary'[_T]:
         """ Converts text to words. """
         words: Vocabulary[str] = Vocabulary()
-        for word in text_to_words(text):
+        for word in word_tokenize(text):
             words.add(word)
         return words
 

@@ -46,3 +46,17 @@ def sentences_from_site(url: str) -> List[str]:
     reports: List[str] = sentences_from_text(text)
     print("Done.")
     return reports
+
+
+def sentences_from_articles(articles: List[Article]) -> List[List[str]]:
+    articles_sentences: List[List[str]] = []
+    for article in articles:
+        url: str = article.link
+        current_sentences: List[str] = sentences_from_site(url)
+        print(f"{article.title}({article.link}): {len(current_sentences)} sentences.")
+        start: int = len(current_sentences) // 4
+        for report in current_sentences[start:start + 3]:
+            print(f"> '{report}'")
+        print("...\n")
+        articles_sentences.append(current_sentences)
+    return articles_sentences
